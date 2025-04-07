@@ -1,0 +1,121 @@
+/* GENERAL STYLES */
+html, body {
+    height: 100%;
+}
+.wrapper {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.content {
+    flex: 1;
+}
+.footer {
+    background-color: #343a40;
+    color: white;
+    padding: 2rem 0;
+    margin-top: 2rem;
+}
+.social-icon {
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 10px;
+    transition: all 0.3s ease;
+}
+.social-icon:hover {
+    color: #0a66c2; /* LinkedIn blue */
+    transform: translateY(-3px);
+}
+.developer-info {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+/* REGISTRATION PAGE STYLES */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+}
+
+.card-header h2 {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.card-header p {
+    opacity: 0.9 !important;
+}
+
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.form-control, .form-select {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #3a7bd5;
+    box-shadow: 0 0 0 0.25rem rgba(58, 123, 213, 0.25);
+}
+
+.btn-primary {
+    background-color: #3a7bd5;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #2c5fb3;
+    transform: translateY(-2px);
+}
+
+/* END of Registration Page Styles */
+
+/* HOME PAGE STYLES */
+.hero-section {
+    padding: 3rem 0;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.btn-lg {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+/* END of Home Page Styles */
+
+/* LOGIN PAGE STYLES */
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.form-control {
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.btn-lg {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+.invalid-feedback {
+    display: block;
+    margin-top: 0.5rem;
+}
+/* END of Login Page Styles */
+

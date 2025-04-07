@@ -13,6 +13,12 @@ class CustomUser(AbstractUser):
     student_id = models.CharField(max_length=20, blank=True, null=True)
     move_in_date = models.DateField(blank=True, null=True)
 
+    CHECK_IN_CHOICES = [
+        ('pending', 'Pending'),
+        ('checked_in', 'Checked In'),
+    ]
+    check_in_status = models.CharField(max_length=20, choices=CHECK_IN_CHOICES, default='pending')
+
 # Room Model for Assignments
 class Room(models.Model):
     number = models.CharField(max_length=10, unique=True)

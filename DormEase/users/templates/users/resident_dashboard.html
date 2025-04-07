@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Welcome, {{ user.username }}!</h2>
+  <p><strong>Email:</strong> {{ user.email }}</p>
+  <p><strong>Student ID:</strong> {{ user.student_id }}</p>
+  <p><strong>Move-in Date:</strong> {{ user.move_in_date }}</p>
+  <p><strong>Assigned Room:</strong> 
+    {% if room %}
+      Room {{ room.room_number }}
+    {% else %}
+      Not Assigned
+    {% endif %}
+  </p>
+</div>
+{% endblock %}

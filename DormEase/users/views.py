@@ -4,14 +4,23 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import View
-from django.urls import reverse
-from django.views.generic import TemplateView
+from django.urls import reverse, reverse_lazy
+from django.views.generic import TemplateView, UpdateView, DeleteView
 
 from . import models, forms
 
 # Create your views here.
 
 User = get_user_model()
+
+# Admin Dashboard View
+class AdminDashboardView(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.user.role != 'superuser':
+            return redirect('home')  # restrict access
+
+        users = models.CustomUser.objects.all()
+        return render(request, 'users/admin_dashboard.html', {'users': users})
 
 # RA Dashboard View with check-in functionality
 class RADashboardView(LoginRequiredMixin, View):
@@ -91,6 +100,8 @@ class CustomLoginView(LoginView):
             return reverse('resident-dashboard')
         elif user.role == 'ra':
             return reverse('ra-dashboard')
+        elif user.role == 'superuser':
+            return reverse('admin-dashboard')
         else:
             return reverse('home')  # fallback in case of undefined role
 
@@ -101,4 +112,54 @@ class HomeView(TemplateView):
 # Password Reset View
 class PasswordResetView(TemplateView):
     template_name = 'users/password_reset.html'
+
+class RoomCreateView(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.user.role != 'superuser':
+            return redirect('home')
+        form = forms.RoomForm()
+        return render(request, 'users/add_room.html', {'form': form})
+
+    def post(self, request):
+        # Single room creation
+        form = forms.RoomForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Room created successfully')
+            return redirect('room-list')
+        return render(request, 'users/add_room.html', {'form': form, 'bulk_mode': False})
+    
+# Room List View
+class RoomListView(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.user.role not in ['ra', 'superuser']:
+            return redirect('home')
+        rooms = models.Room.objects.all().order_by('room_number')
+        return render(request, 'users/room_list.html', {'rooms': rooms})
+
+# Room Edit View
+class RoomEditView(LoginRequiredMixin, UpdateView):
+    model = models.Room
+    form_class = forms.RoomForm
+    template_name = 'users/edit_room.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.role not in ['ra', 'superuser']:
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy('room-list')
+
+# Room Delete View
+class RoomDeleteView(LoginRequiredMixin, DeleteView):
+    model = models.Room
+    template_name = 'users/delete_room.html'
+    success_url = reverse_lazy('room-list')
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.role not in ['ra', 'superuser']:
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
+    
 

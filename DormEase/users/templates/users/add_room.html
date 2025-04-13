@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Add New Room</h2>
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" class="border p-4 rounded bg-light shadow-sm">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_room_number" class="form-label">Room Number</label>
+            {{ form.room_number|add_class:"form-control" }}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_room_type" class="form-label">Room Type</label>
+            {{ form.room_type|add_class:"form-select" }}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_capacity" class="form-label">Capacity</label>
+            {{ form.capacity|add_class:"form-control" }}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Add Room</button>
+    </form>
+</div>
+{% endblock %}

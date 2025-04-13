@@ -31,6 +31,10 @@
                 <a href="{% url 'ra-dashboard' %}" class="btn btn-primary btn-lg px-4 gap-3">
                     <i class="fas fa-tachometer-alt me-2"></i> RA Dashboard
                 </a>
+                {% elif user.role == 'superuser' %}
+                <a href="{% url 'admin-dashboard' %}" class="btn btn-primary btn-lg px-4 gap-3">
+                    <i class="fas fa-tachometer-alt me-2"></i> Admin Dashboard
+                </a>
                 {% endif %}
                 <form method="post" action="{% url 'logout' %}" class="d-inline">
                     {% csrf_token %}

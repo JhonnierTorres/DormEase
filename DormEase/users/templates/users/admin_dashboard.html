@@ -1,14 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4">Admin Dashboard</h2>
-    <table class="table table-bordered table-hover">
+    <h2>Admin Dashboard</h2>
+
+    <table class="table table-bordered table-hover mt-4">
         <thead class="table-dark">
             <tr>
                 <th>Username</th>
                 <th>Email</th>
                 <th>Role</th>
-                <th>Active</th>
+                <th>Status</th>
+                <th>Assigned Room</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -17,11 +19,57 @@
             <tr>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.role }}</td>
-                <td>{{ user.is_active }}</td>
+                <td>{{ user.role|capfirst }}</td>
                 <td>
-                    <a href="#" class="btn btn-sm btn-warning">Change Role</a>
-                    <a href="#" class="btn btn-sm btn-danger">Deactivate</a>
+                    {% if user.is_active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.assigned_room.exists %}
+                        {% for room in user.assigned_room.all %}
+                            <span class="badge bg-info text-dark me-1">{{ room.room_number }}</span>
+                        {% endfor %}
+                        <form method="post" action="{% url 'unassign-resident' user.id %}" class="d-inline ms-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Unassign</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'assign-room' %}?resident={{ user.id }}" class="btn btn-sm btn-outline-primary">Assign Room</a>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <input type="hidden" name="action" value="change_role">
+                        <select name="new_role" class="form-select form-select-sm d-inline w-auto">
+                            <option value="resident" {% if user.role == 'resident' %}selected{% endif %}>Resident</option>
+                            <option value="ra" {% if user.role == 'ra' %}selected{% endif %}>RA</option>
+                            <option value="superuser" {% if user.role == 'superuser' %}selected{% endif %}>Superuser</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-warning">Update</button>
+                    </form>
+
+                    <form method="post" class="d-inline ms-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <input type="hidden" name="action" value="deactivate">
+                        {% if user.is_active %}
+                            <button type="submit" class="btn btn-sm btn-secondary">Deactivate</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-sm btn-secondary">Activate</button>
+                        {% endif %}
+                    </form>
+
+                    <form method="post" class="d-inline ms-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}

@@ -10,26 +10,36 @@
         {% if error %}
             <div class="alert alert-danger">{{ error }}</div>
         {% endif %}
-        <form method="post" class="p-4 border rounded bg-light">
+        <form method="post">
             {% csrf_token %}
+
             <div class="mb-3">
-                <label for="resident" class="form-label">Select Resident:</label>
+                <label for="resident_id" class="form-label">Resident</label>
                 <select name="resident_id" class="form-select">
                     {% for resident in residents %}
-                        <option value="{{ resident.id }}">{{ resident.username }}</option>
+                        <option value="{{ resident.id }}"
+                            {% if selected_resident and selected_resident.id == resident.id %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ resident.username }} ({{ resident.email }})
+                        </option>
                     {% endfor %}
                 </select>
             </div>
+
             <div class="mb-3">
-                <label for="room" class="form-label">Select Room:</label>
+                <label for="room_id" class="form-label">Room</label>
                 <select name="room_id" class="form-select">
                     {% for room in rooms %}
-                        <option value="{{ room.id }}">{{ room.room_number }}</option>
+                        <option value="{{ room.id }}">{{ room.room_number }} ({{ room.room_type }})</option>
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="btn btn-success w-100">Assign Room</button>
+
+            <button type="submit" class="btn btn-success">Assign Room</button>
         </form>
+
     </div>
 </body>
 </html>

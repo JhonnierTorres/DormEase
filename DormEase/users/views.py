@@ -17,10 +17,41 @@ User = get_user_model()
 class AdminDashboardView(LoginRequiredMixin, View):
     def get(self, request):
         if request.user.role != 'superuser':
-            return redirect('home')  # restrict access
-
-        users = models.CustomUser.objects.all()
+            return redirect('home')
+        all_users = models.CustomUser.objects.exclude(id=request.user.id)
+        def room_sort_key(user):
+            if user.assigned_room.exists():
+                # Get the first room's number if they have one or more
+                return (0, user.assigned_room.first().room_number.lower())
+            return (1, '')  # Users without a room come later
+        users = sorted(all_users, key=room_sort_key)
         return render(request, 'users/admin_dashboard.html', {'users': users})
+
+    def post(self, request):
+        if request.user.role != 'superuser':
+            return redirect('home')
+
+        user_id = request.POST.get('user_id')
+        action = request.POST.get('action')
+        role = request.POST.get('new_role')
+
+        try:
+            user = models.CustomUser.objects.get(id=user_id)
+
+            if action == 'change_role' and role in ['resident', 'ra', 'superuser']:
+                user.role = role
+                user.save()
+            elif action == 'deactivate':
+                user.is_active = not user.is_active  # toggle activation
+                user.save()
+
+            elif action == 'delete':
+                user.delete()
+
+        except models.CustomUser.DoesNotExist:
+            pass
+
+        return redirect('admin-dashboard')
 
 # RA Dashboard View with check-in functionality
 class RADashboardView(LoginRequiredMixin, View):
@@ -74,20 +105,66 @@ class ResidentRegistrationView(View):
 # Room Assignment View
 class RoomAssignmentView(View):
     def get(self, request):
+        resident_id = request.GET.get('resident')
+        selected_resident = None
+
+        if resident_id:
+            try:
+                selected_resident = models.CustomUser.objects.get(id=resident_id, role='resident')
+            except models.CustomUser.DoesNotExist:
+                selected_resident = None
+
         residents = models.CustomUser.objects.filter(role='resident', assigned_room=None)
         rooms = models.Room.objects.all()
-        return render(request, 'users/assign_room.html', {'residents': residents, 'rooms': rooms})
+
+        return render(request, 'users/assign_room.html', {
+            'residents': residents,
+            'rooms': rooms,
+            'selected_resident': selected_resident
+        })
 
     def post(self, request):
         resident_id = request.POST.get('resident_id')
         room_id = request.POST.get('room_id')
-        resident = models.CustomUser.objects.get(id=resident_id)
-        room = models.Room.objects.get(id=room_id)
 
-        if not room.is_full():
-            room.occupants.add(resident)
-            return redirect('ra-dashboard')
-        return render(request, 'users/assign_room.html', {'error': 'Room is full'})
+        try:
+            resident = models.CustomUser.objects.get(id=resident_id, role='resident')
+            room = models.Room.objects.get(id=room_id)
+
+            if not room.is_full():
+                room.occupants.add(resident)
+                return redirect('admin-dashboard')  # or 'ra-dashboard' depending on role
+
+            # Room is full
+            error = 'Room is full'
+        except models.CustomUser.DoesNotExist:
+            error = 'Resident not found'
+        except models.Room.DoesNotExist:
+            error = 'Room not found'
+
+        # Re-render form with error
+        residents = models.CustomUser.objects.filter(role='resident', assigned_room=None)
+        rooms = models.Room.objects.all()
+        return render(request, 'users/assign_room.html', {
+            'residents': residents,
+            'rooms': rooms,
+            'error': error
+        })
+
+# Unassign Resident View in the admin dashboard
+class UnassignResidentView(LoginRequiredMixin, View):
+    def post(self, request, resident_id):
+        if request.user.role not in ['ra', 'superuser']:
+            return redirect('home')
+
+        try:
+            resident = models.CustomUser.objects.get(id=resident_id)
+            for room in resident.assigned_room.all():
+                room.occupants.remove(resident)
+        except models.CustomUser.DoesNotExist:
+            pass
+        return redirect('admin-dashboard')  # Or 'ra-dashboard' based on context
+
 
 # Login View
 class CustomLoginView(LoginView):
@@ -113,6 +190,7 @@ class HomeView(TemplateView):
 class PasswordResetView(TemplateView):
     template_name = 'users/password_reset.html'
 
+# Room Create View
 class RoomCreateView(LoginRequiredMixin, View):
     def get(self, request):
         if request.user.role != 'superuser':
@@ -134,7 +212,10 @@ class RoomListView(LoginRequiredMixin, View):
     def get(self, request):
         if request.user.role not in ['ra', 'superuser']:
             return redirect('home')
-        rooms = models.Room.objects.all().order_by('room_number')
+
+        all_rooms = models.Room.objects.all()
+        # Sort rooms by room_number alphabetically (supports alphanumeric values)
+        rooms = sorted(all_rooms, key=lambda room: room.room_number.lower())
         return render(request, 'users/room_list.html', {'rooms': rooms})
 
 # Room Edit View

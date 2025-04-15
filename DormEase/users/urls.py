@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
     path('ra-dashboard/', views.RADashboardView.as_view(), name='ra-dashboard'),
     path('admin-dashboard/', views.AdminDashboardView.as_view(), name='admin-dashboard'),
+    path('dashboard/stats/', views.StatsView.as_view(), name='dashboard-stats'),
     path('resident-dashboard/', views.ResidentDashboardView.as_view(), name='resident-dashboard'),
     path('assign-room/', views.RoomAssignmentView.as_view(), name='assign-room'),
     path('unassign-resident/<int:resident_id>/', views.UnassignResidentView.as_view(), name='unassign-resident'),

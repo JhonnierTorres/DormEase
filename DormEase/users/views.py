@@ -79,7 +79,7 @@ class ResidentDashboardView(LoginRequiredMixin, View):
         user = request.user
         if user.role != 'resident':
             return redirect('ra-dashboard')
-        room = user.assigned_room
+        room = user.assigned_room.first() # if user.assigned_room.exists() else None
         return render(request, 'users/resident_dashboard.html', {'user': user, 'room': room})
 
 
@@ -244,3 +244,30 @@ class RoomDeleteView(LoginRequiredMixin, DeleteView):
         return super().dispatch(request, *args, **kwargs)
     
 
+# STATS View
+class StatsView(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.user.role not in ['ra', 'superuser']:
+            return redirect('home')
+
+        residents = models.CustomUser.objects.filter(role='resident')
+        rooms = models.Room.objects.all()
+
+        checked_in = residents.filter(check_in_status='checked_in').count()
+        pending = residents.filter(check_in_status='pending').count()
+        total_rooms = rooms.count()
+        occupied_rooms = sum(1 for room in rooms if room.occupants.exists())
+        available_rooms = total_rooms - occupied_rooms
+
+        context = {
+            'checked_in': checked_in,
+            'pending': pending,
+            'occupied_rooms': occupied_rooms,
+            'available_rooms': available_rooms,
+            'total_rooms': total_rooms,
+        }
+        
+        # Print for debugging
+        print(f"Debug stats: {context}")
+        
+        return render(request, 'users/stats.html', context)

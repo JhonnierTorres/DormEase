@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Statistics Overview</h2>
+
+    <!-- Debug block to verify values (can remove later) -->
+    <div class="alert alert-info">
+        <strong>Debug:</strong><br>
+        Checked In: {{ checked_in }}<br>
+        Pending: {{ pending }}<br>
+        Occupied Rooms: {{ occupied_rooms }}<br>
+        Available Rooms: {{ available_rooms }}
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-5">
+        <div class="col-md-6" style="height: 300px;">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Resident Check-In Status</h5>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="checkInChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6" style="height: 300px;">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Room Occupancy</h5>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="roomChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<!-- Render Charts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Chart data - Checked in: {{ checked_in }}, Pending: {{ pending }}");
+    console.log("Chart data - Occupied: {{ occupied_rooms }}, Available: {{ available_rooms }}");
+    
+    // Check-In Status Chart
+    const checkInCtx = document.getElementById('checkInChart').getContext('2d');
+    const checkInChart = new Chart(checkInCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Checked In', 'Pending'],
+            datasets: [{
+                label: 'Residents',
+                data: [{{ checked_in|default:0 }}, {{ pending|default:0 }}],
+                backgroundColor: ['#198754', '#ffc107'],
+                borderColor: ['#ffffff'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Room Occupancy Chart
+    const roomCtx = document.getElementById('roomChart').getContext('2d');
+    const roomChart = new Chart(roomCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Occupied', 'Available'],
+            datasets: [{
+                label: 'Rooms',
+                data: [{{ occupied_rooms|default:0 }}, {{ available_rooms|default:0 }}],
+                backgroundColor: ['#0d6efd', '#6c757d'],
+                borderColor: ['#ffffff'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
